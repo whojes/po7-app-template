@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<dbio-config
+	xmlns="http://www.tmax.co.kr/proobject/dbio-config">
+	<connection-info>
+		<!-- <datasources>
+			<pairDataSource alias="db-example">
+				<non-XA-datasource jndi_name="db-example" />
+				<XA-datasource jndi_name="db-example" />
+			</pairDataSource>
+		</datasources> -->
+	</connection-info>
+</dbio-config>

@@ -1,0 +1,116 @@
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'maven'
+
+buildDir = rootProject.buildDir.toString() + "/servicegroup/" + project.name
+
+// moduleName, serviceGroupName must be modified with ServiceGroup Name
+ext {
+	moduleName = "${appName}-" + project.name
+	serviceGroupName = project.name
+	// for annotation processor only
+	System.setProperty("build_dir", rootProject.buildDir.toString())
+	System.setProperty("sg_name", serviceGroupName)
+	
+	svcJarName = moduleName + '-svc.jar'
+}
+
+task svcjar(type: Jar, dependsOn: jar) {
+	archiveName svcJarName
+	destinationDir = file("$buildDir/")
+	manifest {
+		attributes(rootProject.ext.manifest_attributes)
+	}
+	from (sourceSets.main.output.classesDirs) {
+		exclude("com/tmax/${appName}/${serviceGroupName}/dataobject/**")
+		exclude("com/tmax/${appName}/${serviceGroupName}/event/**")
+		exclude("com/tmax/${appName}/${serviceGroupName}/**/dataobject/**")
+	}
+	
+	from {
+		configurations.compile.collect { 
+			it.isDirectory()? it: zipTree(it) 
+		}
+	}
+}
+
+// make event.jar
+task eventJar(type: Jar) {
+	if ( !(new File("$projectDir/src/main/java/com/tmax/${appName}/${serviceGroupName}/event")).exists() ) {
+		return;
+	}
+    archiveName String.format("%s-%s-event.jar", "${appName}", project.name)
+    destinationDir = file("$buildDir/../../event/")
+    manifest {
+        attributes(manifest_attributes)
+    }
+    from (sourceSets.main.output.classesDirs) {
+        include("com/tmax/${appName}/${project.name}/event/**")
+        include(rootProject.ext.manifest_attributes['Main-Class'].replace(".", "/")+".class")
+    }
+}
+
+
+task copyModuleConfig(type: Copy){
+	from 'config'
+	into project.buildDir.toString() + '/config/'
+}
+
+// BINARY FOR VHOST_CREATE
+task copyBinary(type: Copy){
+	from 'binary'
+	into rootProject.buildDir.toString() + '/binary/'
+}
+task copyModuleLib(type: Copy) {
+	from configurations.moduleLib
+	exclude "proobject-**"
+	into project.buildDir.toString()+'/lib/'
+}
+
+task deleteTmp(type: Delete) {
+	delete project.buildDir.toString() + "/tmp"
+	delete project.buildDir.toString() + "/libs"
+	delete project.buildDir.toString() + "/classes"
+    delete project.buildDir.toString() + "/resources"
+	delete project.buildDir.toString() + "/generated"
+}
+
+task servicegroupxml {
+	doLast {
+		def generatedFile = new File(project.buildDir.toString() + '/config/servicegroup.xml.generated')
+		if (generatedFile == null || !generatedFile.exists() ) {
+			return
+		}
+		def oldFile = new File(project.buildDir.toString() + '/config/servicegroup.xml')
+		def newFile = new File(project.buildDir.toString() + '/config/servicegroup.temp.xml')
+		newFile.withWriter { output ->
+			oldFile.eachLine { line ->
+				output.write(line)
+				output.write("\n")
+				if (line.contains("<!-- INSERT HERE -->")) {
+					generatedFile.readLines().each { a  ->
+						output.write(a)
+						output.write("\n")
+					}
+				}
+			}
+		}
+		oldFile.delete()
+		generatedFile.delete()
+		newFile.renameTo(project.buildDir.toString() + '/config/servicegroup.xml')
+	}
+}
+
+task makeJars(type: GradleBuild) {
+	tasks = ['svcjar', 'eventJar', 'copyModuleConfig', 'copyBinary', 'copyModuleLib', 'deleteTmp', 'servicegroupxml']
+}
+
+/**
+*	Test
+*/
+test {
+	useJUnitPlatform()
+	testLogging {
+		events "standardOut", "passed", "skipped", "failed"
+	}
+}

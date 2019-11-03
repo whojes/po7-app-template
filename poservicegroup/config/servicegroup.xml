@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!DOCTYPE xml>
+<ns17:service-group xmlns:to="http://www.tmaxsoft.com/proobject/resource/taskobject" xmlns:ns16="http://www.tmax.co.kr/proobject/sourcecode" xmlns:ns17="http://www.tmax.co.kr/proobject/servicegroup" xmlns:ns14="http://www.tmax.co.kr/proobject/jobobject" xmlns:ns15="http://www.tmax.co.kr/proobject/serviceobject-automatic" xmlns:so="http://www.tmaxsoft.com/proobject/resource/serviceobject" xmlns:ns18="http://www.tmax.co.kr/proobject/contents" xmlns:ns19="http://www.tmax.co.kr/proobject/siteConfig" xmlns:ns21="http://www.tmax.co.kr/proobject/property" xmlns:ns9="http://www.tmax.co.kr/proobject/flow" xmlns:ns22="http://www.tmax.co.kr/proobject/serverConfig" xmlns:ns23="http://www.tmaxsoft.com/proobject/resource" xmlns:jo="http://www.tmaxsoft.com/proobject/resource/jobobject" xmlns:ns5="http://www.tmax.co.kr/proobject/dataobject" xmlns:ns12="http://www.tmax.co.kr/proobject/serviceobject" xmlns:ns6="http://www.example.org/externalObjectConfig" xmlns:ns13="http://www.tmax.co.kr/proobject/taskobject" xmlns:ns7="http://www.tmax.co.kr/proobject/dto" xmlns:ns10="http://www.tmax.co.kr/proobject/dataobjectfactory" xmlns:ns20="http://www.tmax.co.kr/proobject/probuilder_config" xmlns:ns8="http://www.tmax.co.kr/proobject/mapping" xmlns:ns11="http://www.tmax.co.kr/proobject/bizobject" xmlns:ns2="http://www.tmax.co.kr/proobject/resource" xmlns:bo="http://www.tmaxsoft.com/proobject/resource/bizobject" xmlns:ns4="http://www.tmax.co.kr/proobject/application/runtime" xmlns:ns3="http://www.tmax.co.kr/proobject/message" xmlns:xc="http://www.tmaxsoft.com/proobject/resource/contents" xmlns:do="http://www.tmaxsoft.com/proobject/resource/dataobject">
+	<ns17:group-name>poservicegroup</ns17:group-name>
+	<ns17:language>en</ns17:language>
+
+	<ns17:service-object>
+		<ns17:name>Hello-worldsGet</ns17:name>
+		<ns17:class-name>com.tmax.poapp.poservicegroup.service.HelloWorldGet</ns17:class-name>
+		<ns17:input-dto>com.tmax.poapp.dataobject.poservicegroup.HelloWorld</ns17:input-dto>
+		<ns17:output-dto>com.tmax.poapp.dataobject.poservicegroup.HelloWorld</ns17:output-dto>
+		<ns17:service-type>COMPLEX</ns17:service-type>
+	</ns17:service-object>
+	<!-- INSERT HERE -->
+</ns17:service-group>

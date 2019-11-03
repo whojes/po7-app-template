@@ -1,0 +1,7 @@
+// CHANGE THE PROJECT NAME TO YOUR APPLICATION NAME
+// don't include _ or - in your app name
+rootProject.name = 'poapp'
+
+// include ":yourservicegroup"
+// don't include _ or - in your servicegroup name
+include ":poservicegroup"

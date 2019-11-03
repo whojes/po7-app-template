@@ -1,0 +1,332 @@
+buildscript{
+    repositories {
+        google()
+        jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "org.hidetake:gradle-ssh-plugin:2.9.0"
+        classpath "gradle.plugin.io.github.http-builder-ng:http-plugin:0.1.1"
+        // classpath "gradle.plugin.org.gradle.crypto:checksum:1.2.0"
+    }
+}
+// Apply the java plugin to add support for Java
+apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: "org.hidetake.ssh"
+apply plugin: "io.github.http-builder-ng.http-plugin"
+apply plugin: 'maven-publish'
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+   jcenter()
+}
+
+ext {
+    appName = project.getProperty("app_name")
+    poVersion = project.getProperty("proobject_version")
+    nexusAddress = project.getProperty("nexus_address")
+    nexusUser = project.getProperty("nexus_user")
+    nexusPassword = project.getProperty("nexus_password")
+    build_version = System.getProperty("build_version")
+    if (build_version == null) {
+        build_version = "local"
+    }
+
+    // build_version will be implemented with Jenkins Build.
+    // get Current git branch name Function.
+    getGitBranch = { ->
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim().replace('/', '-')
+    }
+    
+    if (!project.hasProperty('git_branch')) {
+        git_branch = getGitBranch()
+    } else {
+        git_branch = project.getProperty('git_branch').toString()
+    }
+    
+    // get Git last commit hash Function.
+    getGitHash = { ->
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', 'HEAD'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    }
+    // Manifest form of every Jar in the Project.
+    
+    manifest_attributes = [
+      'Built-By' :System.properties['user.name'],
+      'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
+      'Git-Branch' : "${git_branch}",
+      'Git-Revision' : getGitHash(), 
+      'Build-Version'  : "${build_version}", 
+      'Created-By'     : "Gradle ${gradle.gradleVersion}",
+      'Build-Jdk'      : "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
+      'Build-OS'       : "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}",
+      'Main-Class'    : "com.tmax.${appName}.VersionGet"]
+}
+
+// task 'clean' removes $project/build/**
+clean {
+    delete rootProject.buildDir
+}
+
+buildDir = buildDir.toString() + "/" + appName
+
+allprojects {
+    apply plugin: "java"
+    apply plugin: "java-library"
+    repositories {
+        maven {
+            url "http://${nexusAddress}/repository/sk2/"
+        }
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation "com.tmax:proobject:${poVersion}:core"
+        implementation "com.tmax:proobject:${poVersion}:dataobject"
+        implementation "com.tmax:proobject:${poVersion}:model"
+        implementation "com.tmax:proobject:${poVersion}:network"
+        implementation "com.tmax:proobject:${poVersion}:promapper"
+        implementation "com.tmax:proobject:${poVersion}:runtime"
+        implementation "com.tmax:proobject:${poVersion}:logger"
+        implementation "com.tmax:proobject:${poVersion}:scheduler"
+        implementation "com.tmax:proobject:${poVersion}:util"
+        implementation "com.tmax:proobject-util:2.0.2.120:icache-core"
+        implementation "com.google.code.gson:gson:2.8.0"
+        implementation "com.google.guava:guava:18.0"
+    }
+}
+
+
+
+task buildAll(type: GradleBuild) {
+    dependsOn clean
+    subprojects.findAll {
+        dependsOn it.name+":makeJars"
+    }
+    tasks = ['copyCommonLib', 'copyCommonDto', 'copyAppConfig', 'appDtoJar', 'commonJar', 'sqlCopy', 'deleteTmps']
+    doLast {
+        // version info file
+        new File("$buildDir/version.ini").text = "[VERSION_INFO]"
+        manifest_attributes.collect {
+            new File("$buildDir/version.ini").append("\n"+it)
+        }
+    }
+}
+
+// build $application home directory and tar archiving.
+task tar(type: Tar, dependsOn: buildAll) {
+    def bv = "$build_version"
+
+    archiveBaseName = appName
+    archiveAppendix = "${git_branch}"
+    archiveVersion = bv
+    destinationDirectory = file("build/")
+    extension 'tar'
+    into ('/') {
+        from 'build/'+appName
+    }
+    doLast {
+        // checksum file
+        def checksum_file = new File("$buildDir/${appName}_ChecksumFile")
+        checksum_file.text = "${appName}_v${build_version}\n"
+        def value_delimeter = "\t"
+        
+        fileTree("$buildDir").visit { element -> 
+            if(element.isDirectory() || element.toString().contains("version.ini") || element.toString().contains("ChecksumFile")){
+                return;
+            }
+            def checksum = ant.checksum(file: element.getFile(), algorithm: "SHA-256")
+            checksum_file.append(element.getRelativePath() + value_delimeter +(new File(element.getFile().toString() + ".SHA-256")).text)
+            (new File(element.getFile().toString() + ".SHA-256")).delete()
+        }
+    }
+}
+
+task deploy { 
+    dependsOn tar
+    remotes {
+       target {
+            host = project.properties["remoteHostIp"]
+            port = 22
+            user = project.properties["remoteHostUser"]
+            password = project.properties["remoteHostPwd"]
+            knownHosts = allowAnyHosts
+        }
+    }
+    def gitBranch = "${git_branch}"
+    def buildVersion = "$build_version"
+    def POHome = project.properties['remotePOHome']
+    def configApplyFile = "config-apply.sh"
+
+    // Tar Copy
+    doLast {
+        ssh.run {
+            session(remotes.target) {
+                put from: file("$projectDir/build/${appName}-${git_branch}-${build_version}.tar"),
+                      into: POHome + "application/"
+            }
+        }
+    }
+    // Config Change
+    doLast {
+        ssh.run {
+            session(remotes.target) {
+                // copy config change file
+                put from: file('scripts/' + configApplyFile),
+                    into: POHome
+                execute "chmod u+x " + POHome + configApplyFile
+                
+                // execute the file
+                execute String.format("%s %s %s %s %s", POHome + configApplyFile,
+                    appName, POHome, gitBranch, buildVersion)
+                
+                // remote the file
+                execute "rm " + POHome + configApplyFile
+            }
+        }
+    }
+    // Restart Script execute
+    doLast {
+        if (project.hasProperty('remoteRestartScript')) {
+            ssh.run {
+                session(remotes.target) {
+                    execute project.properties["remoteRestartScript"]
+                }
+            }
+        } else {
+            println 'No RestartScript specified.'
+        }
+    }
+}
+
+// common lib copy
+task copyCommonLib (type: Copy) {
+    from configurations.commonLib
+    exclude 'proobject-**'
+    into project.buildDir.toString() + '/common/lib/'
+}
+
+// common dto copy
+task copyCommonDto (type: Copy) {
+    from configurations.commonDto
+    include "*dto*"
+    // exclude "proobject-**"
+    into project.buildDir.toString() + "/common/dto/"
+}
+
+// application config copy
+task copyAppConfig (type: Copy) {
+    from 'config'
+    into buildDir.toString() + "/config/"
+}
+
+// make appDtoJar.jar
+task appDtoJar(type: Jar) {
+    dependsOn build
+    archiveName appName + '-dto.jar'
+    destinationDir = file("$buildDir/common/dto/")
+    manifest {
+        attributes(manifest_attributes)
+    }
+    from (sourceSets.main.output.classesDirs) {
+        include("com/tmax/${appName}/dataobject/**")
+        include(rootProject.ext.manifest_attributes['Main-Class'].replace(".", "/")+".class")
+    }
+}
+
+// make common.jar
+task commonJar(type: Jar) {
+    dependsOn build
+    archiveName appName + "-common.jar"
+    destinationDir = file("$buildDir/common/lib/")
+    manifest {
+        attributes(manifest_attributes)
+    }
+    from (sourceSets.main.output.classesDirs) {
+        include("com/tmax/${appName}/common/**")
+        include("com/tmax/${appName}/tbutil/**")
+        include(rootProject.ext.manifest_attributes['Main-Class'].replace(".", "/")+".class")
+    }
+    from (sourceSets.main.resources) {
+        include("*")
+    }
+}
+
+// sql copy
+task sqlCopy(type: Copy) {
+    subprojects.findAll {
+        from it.name + "/sql/"
+        into project.buildDir.toString() + "/sql/"
+        include "**.sql"
+    }
+}
+
+// Delete Temporary files after build.
+task deleteTmps(type: Delete) {
+    delete project.buildDir.toString() + "/tmp"
+    delete project.buildDir.toString() + "/libs"
+    delete project.buildDir.toString() + "/classes"
+    delete project.buildDir.toString() + "/resources"
+    delete project.buildDir.toString() + "/generated"
+}
+
+// build $application home directory
+
+/** 
+*    TAR and dto nexus upload task.
+*    use this in jenkins
+*/
+task tarAndNexusUpload(type: GradleBuild) {
+    dependsOn(tar, publish)
+    publish.mustRunAfter(tar)
+}
+
+// DO NOT USE publish AND buildAndDtoPublish TASK in local.
+// JENKINS BUILD WILL UPLOAD AUTOMATICALLY
+// artifacts {
+//     archives appDtoJar
+// }
+
+publishing {
+    def BUILD_VERSION = "${build_version}"
+    if (nexusUser == null || nexusPassword == null) {
+        return
+    }
+
+    publications {
+        dto(MavenPublication) {
+            artifact(appDtoJar) {
+                groupId "com.tmax.${appName}"
+                artifactId appName + '-dto'
+                version BUILD_VERSION
+                extension 'jar'
+            }
+        }
+    }
+    repositories {
+        maven {
+            name "deploy"
+            url "http://"+rootProject.properties["nexusAddress"]+"/repository/maven-releases/"
+            credentials {
+                username = "sk2"
+                password = "apm1234"
+            }
+        }
+    }
+}
+
+task runAllTests() {
+    subprojects.each { dependsOn("${it.name}:test") }
+}

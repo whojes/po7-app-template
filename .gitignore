@@ -1,0 +1,24 @@
+# eclipse settings
+.settings
+.classpath
+.project
+
+*/.settings
+*/.project
+*/.classpath
+
+# vscode settings
+.vscode
+*/.vscode
+
+# build
+.gradle
+gradle.properties
+build
+bin
+
+*/build
+*/bin
+*/privateEnv.txt
+patchnote.md
+

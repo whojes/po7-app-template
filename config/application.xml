@@ -1,0 +1,36 @@
+<ns4:application
+	xmlns:to="http://www.tmaxsoft.com/proobject/resource/taskobject"
+	xmlns:ns16="http://www.tmax.co.kr/proobject/sourcecode"
+	xmlns:ns17="http://www.tmax.co.kr/proobject/servicegroup"
+	xmlns:ns14="http://www.tmax.co.kr/proobject/jobobject"
+	xmlns:ns15="http://www.tmax.co.kr/proobject/serviceobject-automatic"
+	xmlns:so="http://www.tmaxsoft.com/proobject/resource/serviceobject"
+	xmlns:ns18="http://www.tmax.co.kr/proobject/contents"
+	xmlns:ns19="http://www.tmax.co.kr/proobject/probuilder_config"
+	xmlns:ns21="http://www.tmax.co.kr/proobject/serverConfig"
+	xmlns:ns9="http://www.tmax.co.kr/proobject/flow"
+	xmlns:ns22="http://www.tmax.co.kr/proobject/property"
+	xmlns:ns23="http://www.tmaxsoft.com/proobject/resource"
+	xmlns:jo="http://www.tmaxsoft.com/proobject/resource/jobobject"
+	xmlns:ns5="http://www.tmax.co.kr/proobject/dataobject"
+	xmlns:ns12="http://www.tmax.co.kr/proobject/serviceobject"
+	xmlns:ns6="http://www.prozone_paas.org/externalObjectConfig"
+	xmlns:ns13="http://www.tmax.co.kr/proobject/taskobject"
+	xmlns:ns7="http://www.tmax.co.kr/proobject/dto"
+	xmlns:ns10="http://www.tmax.co.kr/proobject/dataobjectfactory"
+	xmlns:ns20="http://www.tmax.co.kr/proobject/siteConfig"
+	xmlns:ns8="http://www.tmax.co.kr/proobject/message"
+	xmlns:ns11="http://www.tmax.co.kr/proobject/bizobject"
+	xmlns:ns2="http://www.tmax.co.kr/proobject/resource"
+	xmlns:bo="http://www.tmaxsoft.com/proobject/resource/bizobject"
+	xmlns:ns4="http://www.tmax.co.kr/proobject/application/runtime"
+	xmlns:ns3="http://www.tmax.co.kr/proobject/mapping"
+	xmlns:xc="http://www.tmaxsoft.com/proobject/resource/contents"
+	xmlns:do="http://www.tmaxsoft.com/proobject/resource/dataobject"
+	ApplicationName="TmaxLinuxMaster">
+	<ns4:name>poapp</ns4:name>
+	<ns4:classloader-unit>OBJECT</ns4:classloader-unit>
+	<ns4:timeout>100000</ns4:timeout>
+</ns4:application>
+
+
