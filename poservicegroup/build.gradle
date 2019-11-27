@@ -8,10 +8,6 @@ dependencies {
 	implementation rootProject
 	// moduleLib, moduleDto
 
-	// custom annotation 
-	// annotationProcessor files("${rootProject.projectDir.toString()}/libs/custom-ap-local.jar")
-	// implementation files("${rootProject.projectDir.toString()}/libs/custom-ap-local.jar")
-
 	implementation configurations.moduleLib
 	implementation configurations.moduleDto
 }

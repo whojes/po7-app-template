@@ -82,6 +82,11 @@ clean {
 
 buildDir = buildDir.toString() + "/" + appName
 
+// for annotation processor
+System.setProperty("app_name", appName)
+System.setProperty("generate_mark", "//generated")
+System.setProperty("build_dir", rootProject.buildDir.toString())
+
 allprojects {
     apply plugin: "java"
     apply plugin: "java-library"
@@ -105,6 +110,9 @@ allprojects {
         implementation "com.tmax:proobject-util:2.0.2.120:icache-core"
         implementation "com.google.code.gson:gson:2.8.0"
         implementation "com.google.guava:guava:18.0"
+		
+		annotationProcessor files("${rootProject.projectDir.toString()}/libs/custom-ap-local.jar")
+		implementation files("${rootProject.projectDir.toString()}/libs/custom-ap-local.jar")
     }
 }
 
@@ -113,6 +121,7 @@ allprojects {
 task buildAll(type: GradleBuild) {
     dependsOn clean
     subprojects.findAll {
+        dependsOn it.name+":build"
         dependsOn it.name+":makeJars"
     }
     tasks = ['copyCommonLib', 'copyCommonDto', 'copyAppConfig', 'appDtoJar', 'commonJar', 'sqlCopy', 'deleteTmps']

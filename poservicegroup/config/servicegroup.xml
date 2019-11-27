@@ -4,12 +4,5 @@
 	<ns17:group-name>poservicegroup</ns17:group-name>
 	<ns17:language>en</ns17:language>
 
-	<ns17:service-object>
-		<ns17:name>Hello-worldsGet</ns17:name>
-		<ns17:class-name>com.tmax.poapp.poservicegroup.service.HelloWorldGet</ns17:class-name>
-		<ns17:input-dto>com.tmax.poapp.dataobject.poservicegroup.HelloWorld</ns17:input-dto>
-		<ns17:output-dto>com.tmax.poapp.dataobject.poservicegroup.HelloWorld</ns17:output-dto>
-		<ns17:service-type>COMPLEX</ns17:service-type>
-	</ns17:service-object>
 	<!-- INSERT HERE -->
 </ns17:service-group>

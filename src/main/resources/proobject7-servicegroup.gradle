@@ -2,16 +2,13 @@ apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'maven'
 
+mainClassName = "com.tmax.${appName}"
 buildDir = rootProject.buildDir.toString() + "/servicegroup/" + project.name
 
 // moduleName, serviceGroupName must be modified with ServiceGroup Name
 ext {
 	moduleName = "${appName}-" + project.name
 	serviceGroupName = project.name
-	// for annotation processor only
-	System.setProperty("build_dir", rootProject.buildDir.toString())
-	System.setProperty("sg_name", serviceGroupName)
-	
 	svcJarName = moduleName + '-svc.jar'
 }
 
@@ -73,6 +70,8 @@ task deleteTmp(type: Delete) {
 	delete project.buildDir.toString() + "/classes"
     delete project.buildDir.toString() + "/resources"
 	delete project.buildDir.toString() + "/generated"
+	delete project.buildDir.toString() + "/distributions"
+	delete project.buildDir.toString() + "/scripts"
 }
 
 task servicegroupxml {

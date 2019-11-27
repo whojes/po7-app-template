@@ -17,9 +17,9 @@ apply plugin: "java"
 
 ext {
 	app_name = rootProject.name
-	nexus_address = "somewhere"
-	nexus_user = "someid"
-	nexus_password = "something"
+	nexus_address = "192.168.1.150:8081"
+	nexus_user = "sk2"
+	nexus_password = "apm1234"
 	proobject_version = "7.0.0.1.195"
 	if (project.hasProperty("build_version")) {
 		System.setProperty("build_version", project.getProperty("build_version"))
