@@ -9,34 +9,21 @@ buildscript {
 	dependencies {
 		classpath("org.hidetake:gradle-ssh-plugin:2.9.0")
 		classpath("gradle.plugin.io.github.http-builder-ng:http-plugin:0.1.1")
-		// build script source
 	}
 }
 
 apply plugin: "java"
-
 ext {
 	app_name = rootProject.name
-	nexus_address = "192.168.1.150:8081"
-	nexus_user = "sk2"
-	nexus_password = "apm1234"
+	nexus_address = "foo"
+	nexus_user = "foo"
+	nexus_password = "foo"
 	proobject_version = "7.0.0.1.195"
 	if (project.hasProperty("build_version")) {
 		System.setProperty("build_version", project.getProperty("build_version"))
 	}
 }
 
-sourceSets {
-	main {
-		java {
-			srcDir '${project.projectDir}/src/main/java'
-		}
-	}
-}
-/**
-* ADD DEPENDENCY HERE FOR COMMON/LIB DEPENDENCIES
-* all projects including subprojects Dependencies.
-*/
 allprojects {
 	apply plugin: "java"
 	apply plugin: "java-library"
@@ -60,8 +47,6 @@ allprojects {
 	dependencies {
 		// commonLib
 		// commonDto
-		commonLib 'com.google.guava:guava:23.0'
-		commonLib 'com.google.code.gson:gson:2.8.0'
 		commonLib 'com.intellij:annotations:12.0'
 		commonLib 'com.jcraft:jsch:0.1.54'
 		commonLib 'io.rest-assured:rest-assured:3.3.0'
@@ -79,6 +64,5 @@ allprojects {
 	    implementation configurations.commonDto
 	}
 }
-
 
 apply from: "src/main/resources/proobject7.gradle"

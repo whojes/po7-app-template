@@ -75,7 +75,6 @@ ext {
       'Main-Class'    : "com.tmax.${appName}.VersionGet"]
 }
 
-// task 'clean' removes $project/build/**
 clean {
     delete rootProject.buildDir
 }
@@ -84,7 +83,6 @@ buildDir = buildDir.toString() + "/" + appName
 
 // for annotation processor
 System.setProperty("app_name", appName)
-System.setProperty("generate_mark", "//generated")
 System.setProperty("build_dir", rootProject.buildDir.toString())
 
 allprojects {
@@ -121,7 +119,6 @@ allprojects {
 task buildAll(type: GradleBuild) {
     dependsOn clean
     subprojects.findAll {
-        dependsOn it.name+":build"
         dependsOn it.name+":makeJars"
     }
     tasks = ['copyCommonLib', 'copyCommonDto', 'copyAppConfig', 'appDtoJar', 'commonJar', 'sqlCopy', 'deleteTmps']
@@ -231,7 +228,6 @@ task copyCommonLib (type: Copy) {
 task copyCommonDto (type: Copy) {
     from configurations.commonDto
     include "*dto*"
-    // exclude "proobject-**"
     into project.buildDir.toString() + "/common/dto/"
 }
 
@@ -243,7 +239,6 @@ task copyAppConfig (type: Copy) {
 
 // make appDtoJar.jar
 task appDtoJar(type: Jar) {
-    dependsOn build
     archiveName appName + '-dto.jar'
     destinationDir = file("$buildDir/common/dto/")
     manifest {
@@ -257,7 +252,6 @@ task appDtoJar(type: Jar) {
 
 // make common.jar
 task commonJar(type: Jar) {
-    dependsOn build
     archiveName appName + "-common.jar"
     destinationDir = file("$buildDir/common/lib/")
     manifest {
@@ -291,8 +285,6 @@ task deleteTmps(type: Delete) {
     delete project.buildDir.toString() + "/generated"
 }
 
-// build $application home directory
-
 /** 
 *    TAR and dto nexus upload task.
 *    use this in jenkins
@@ -301,12 +293,6 @@ task tarAndNexusUpload(type: GradleBuild) {
     dependsOn(tar, publish)
     publish.mustRunAfter(tar)
 }
-
-// DO NOT USE publish AND buildAndDtoPublish TASK in local.
-// JENKINS BUILD WILL UPLOAD AUTOMATICALLY
-// artifacts {
-//     archives appDtoJar
-// }
 
 publishing {
     def BUILD_VERSION = "${build_version}"

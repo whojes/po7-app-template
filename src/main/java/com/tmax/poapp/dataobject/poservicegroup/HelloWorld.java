@@ -1,13 +1,14 @@
 package com.tmax.poapp.dataobject.poservicegroup;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Map;
 
 import com.google.gson.annotations.Expose;
+import com.tmax.proobject.common.CkMsgJson;
 import com.tmax.proobject.model.dataobject.DataObject;
 import com.tmax.proobject.model.exception.FieldNotFoundException;
 
+@CkMsgJson(gson = "com.tmax.poapp.dataobject.common.GsonMessage")
 public class HelloWorld extends DataObject{
 
     @Expose
